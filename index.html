@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminix | Asteroid Defense System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        space: {
+                            dark: '#0a0a1a',
+                            blue: '#1a2b4d',
+                            accent: '#00ffb3'
+                        }
+                    },
+                    fontFamily: {
+                        'tech': ['Space Grotesk', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'Array';
+            src: url('array-regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        @font-face {
+            font-family: 'Array';
+            src: url('array-bold.ttf') format('truetype'); 
+            font-weight: bold;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        .font-sig {
+            font-family: 'Array', sans-serif;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .float {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .float-delay-1 {
+            animation-delay: 1s;
+        }
+        
+        .float-delay-2 {
+            animation-delay: 2s;
+        }
+
+        ::selection {
+            background-color: rgba(255, 255, 255, 0.3);
+            text-decoration: underline;
+        }
+
+        .terminal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .terminal-content::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+        
+        .terminal-content::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+        
+        .terminal-content::-webkit-scrollbar-thumb:hover {
+            background: #444;
+        }
+        
+        @keyframes alertBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .alert-blink {
+            animation: alertBlink 0.8s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-space-dark text-white font-tech min-h-screen overflow-x-hidden">
+    <div class="fixed inset-0 z-0 overflow-hidden">
+        <div class="absolute top-1/4 left-1/3 w-1 h-1 bg-white rounded-full opacity-70"></div>
+        <div class="absolute top-1/2 left-1/4 w-2 h-2 bg-white rounded-full opacity-50 float"></div>
+        <div class="absolute top-3/4 left-2/3 w-1 h-1 bg-white rounded-full opacity-60 float float-delay-1"></div>
+        <div class="absolute top-1/3 right-1/4 w-1.5 h-1.5 bg-white rounded-full opacity-40 float float-delay-2"></div>        
+        <div class="absolute top-[10%] left-[10%] w-1 h-1 bg-white rounded-full opacity-80"></div>
+        <div class="absolute top-[15%] left-[45%] w-0.5 h-0.5 bg-white rounded-full opacity-60 float"></div>
+        <div class="absolute top-[20%] left-[80%] w-1 h-1 bg-white rounded-full opacity-70 float float-delay-1"></div>
+        <div class="absolute top-[30%] left-[60%] w-2 h-2 bg-white rounded-full opacity-30 float float-delay-2"></div>
+        <div class="absolute top-[40%] left-[75%] w-1 h-1 bg-white rounded-full opacity-50"></div>
+        <div class="absolute top-[45%] left-[5%] w-1.5 h-1.5 bg-white rounded-full opacity-60 float"></div>
+        <div class="absolute top-[55%] left-[55%] w-0.5 h-0.5 bg-white rounded-full opacity-85 float float-delay-1"></div>
+        <div class="absolute top-[60%] left-[40%] w-1 h-1 bg-white rounded-full opacity-70 float float-delay-2"></div>
+        <div class="absolute top-[70%] left-[20%] w-1 h-1 bg-white rounded-full opacity-65"></div>
+        <div class="absolute top-[80%] left-[85%] w-2 h-2 bg-white rounded-full opacity-40 float"></div>
+        <div class="absolute top-[85%] left-[35%] w-0.5 h-0.5 bg-white rounded-full opacity-75 float float-delay-1"></div>
+        <div class="absolute top-[90%] left-[70%] w-1 h-1 bg-white rounded-full opacity-60 float float-delay-2"></div>
+        <div class="absolute top-[25%] left-[22%] w-1.5 h-1.5 bg-blue-100 rounded-full opacity-90"></div>
+        <div class="absolute top-[65%] left-[78%] w-2 h-2 bg-blue-50 rounded-full opacity-80 float"></div>
+        <div class="absolute top-[38%] left-[88%] w-1.5 h-1.5 bg-yellow-50 rounded-full opacity-95 float float-delay-2"></div>
+        
+        <!-- color blobs -->
+        <div class="absolute -top-40 -left-40 w-96 h-96 bg-gradient-to-br from-purple-500 to-purple-800 rounded-full opacity-10 blur-3xl"></div>
+        <div class="absolute -bottom-60 -right-60 w-[30rem] h-[30rem] bg-gradient-to-tl from-blue-500 to-blue-800 rounded-full opacity-10 blur-3xl"></div>
+        <div class="absolute top-1/2 left-1/3 w-[25rem] h-[25rem] bg-gradient-to-tr from-teal-500 to-teal-800 rounded-full opacity-5 blur-3xl"></div>
+        <div class="absolute bottom-1/4 left-1/4 w-[20rem] h-[20rem] bg-gradient-to-bl from-indigo-500 to-indigo-800 rounded-full opacity-5 blur-3xl"></div>
+    </div>
+
+    <nav class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-2 md:px-6 py-3 max-w-5xl w-[95%] mx-auto">
+        <div class="glass rounded-full px-6 py-3 flex justify-between items-center hover:bg-white/10 transition-colors duration-300">
+            <div class="flex items-center">
+                <div class="text-space-accent font-bold text-2xl mr-2 hover:scale-105 transition-transform duration-300 font-sig">TERMINIX</div>
+                <div class="hidden md:block text-xs text-gray-400">// ASTEROID DEFENSE SYSTEM</div>
+            </div>
+            
+            <button class="md:hidden text-white focus:outline-none hover:text-space-accent transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
+            
+            <div class="hidden md:flex items-center space-x-6 text-sm">
+                <a href="#technology" class="hover:text-space-accent hover:scale-110 transition-all duration-300">TECHNOLOGY</a>
+                <a href="#mission" class="hover:text-space-accent hover:scale-110 transition-all duration-300">MISSION</a>
+                <a href="#features" class="hover:text-space-accent hover:scale-110 transition-all duration-300">FEATURES</a>
+                <a href="#deployment" class="hover:text-space-accent hover:scale-110 transition-all duration-300">TIMELINE</a>
+                <a href="#faq" class="hover:text-space-accent hover:scale-110 transition-all duration-300">FAQ</a>
+                <a href="#contact" class="hover:text-space-accent hover:scale-110 transition-all duration-300">JOIN</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="md:hidden glass fixed inset-x-0 top-16 z-40 hidden p-4">
+        <div class="flex flex-col space-y-4 text-center">
+            <a href="#technology" class="py-2 hover:text-space-accent hover:bg-white/10 rounded-lg transition-all duration-300">TECHNOLOGY</a>
+            <a href="#mission" class="py-2 hover:text-space-accent hover:bg-white/10 rounded-lg transition-all duration-300">MISSION</a>
+            <a href="#features" class="py-2 hover:text-space-accent hover:bg-white/10 rounded-lg transition-all duration-300">FEATURES</a>
+            <a href="#deployment" class="py-2 hover:text-space-accent hover:bg-white/10 rounded-lg transition-all duration-300">TIMELINE</a>
+            <a href="#faq" class="py-2 hover:text-space-accent hover:bg-white/10 rounded-lg transition-all duration-300">FAQ</a>
+            <a href="#contact" class="py-2 hover:text-space-accent hover:bg-white/10 rounded-lg transition-all duration-300">JOIN</a>
+        </div>
+    </div>
+
+    <!-- lander -->
+    <section class="h-screen flex items-center justify-center relative z-10 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-space-dark via-space-blue/30 to-space-dark/95 z-0"></div>
+        <div class="absolute -top-40 -right-40 w-[40rem] h-[40rem] bg-gradient-to-bl from-purple-500/20 via-indigo-600/15 to-transparent rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-20 -left-20 w-[35rem] h-[35rem] bg-gradient-to-tr from-space-accent/10 via-teal-700/5 to-transparent rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-space-dark to-transparent z-10"></div>
+        
+        <div class="container mx-auto px-4 md:px-8 relative z-20">
+            <div class="max-w-4xl mx-auto text-center">
+                <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+                    Protecting Earth From 
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-space-accent to-teal-300 relative">
+                        Cosmic Threats
+                        <div class="absolute inset-0 bg-gradient-to-r from-cyan-400/20 via-space-accent/20 to-teal-300/20 blur-xl -z-10"></div>
+                    </span>
+                </h1>
+                
+                <p class="text-xl md:text-2xl text-gray-300 mb-10 max-w-3xl mx-auto">
+                    The <span class="font-sig">Terminix</span> satellite defense system eliminates rogue asteroids and stellar objects before they become a threat.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row justify-center gap-5">
+                    <a href="#features" class="glass px-10 py-4 rounded-full text-space-accent border border-space-accent hover:bg-gradient-to-r hover:from-space-accent hover:to-teal-400 hover:text-black hover:scale-105 transform transition-all duration-300">
+                        Explore Features
+                    </a>
+                    <a href="#deployment" class="glass px-10 py-4 rounded-full border border-transparent hover:border-white/30 hover:bg-white/10 hover:scale-105 transform transition-all duration-300">
+                        Deployment Timeline
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="technology" class="py-16 md:py-24 relative z-10">
+        <div class="container mx-auto px-4 md:px-8">
+            <div class="glass rounded-2xl p-8 md:p-12 hover:bg-white/10 transition-colors duration-500">
+                <h2 class="text-3xl md:text-4xl font-bold mb-10 text-center hover:text-space-accent transition-colors duration-300">Advanced Orbital Platform</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="col-span-1 lg:col-span-2">
+                        <div class="relative h-64 md:h-80 lg:h-full rounded-xl overflow-hidden group">
+                            <img src="https://videos.openai.com/vg-assets/assets%2Ftask_01jvp6fdz7fd8sgg1vyyfn6bc0%2F1747723012_img_2.webp?st=2025-05-20T05%3A27%3A30Z&se=2025-05-26T06%3A27%3A30Z&sks=b&skt=2025-05-20T05%3A27%3A30Z&ske=2025-05-26T06%3A27%3A30Z&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skoid=3d249c53-07fa-4ba4-9b65-0bf8eb4ea46a&skv=2019-02-02&sv=2018-11-09&sr=b&sp=r&spr=https%2Chttp&sig=%2BMLss2XcS0%2FBEAg%2Flhfp7D1cmL59syP9nvKIeYpv%2FO4%3D&az=oaivgprodscus" class="absolute inset-0 h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                            <div class="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-space-dark to-transparent"></div>
+                            <div class="absolute bottom-4 left-4 right-4 text-white p-4 glass rounded-lg">
+                                <h4 class="text-space-accent font-bold">Cutting-Edge Technology</h4>
+                                <p class="text-sm"><span class="font-sig">Terminix</span> satellites utilize cutting-edge propulsion and defensive technologies</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="glass p-6 rounded-xl hover:bg-gradient-to-r hover:from-space-blue/50 hover:to-space-dark/80 transition-colors duration-300 transform hover:scale-105">
+                            <h3 class="text-xl font-bold mb-3 flex items-center">
+                                Power Systems
+                            </h3>
+                            <p class="text-gray-300">
+                                Next-generation fusion reactors provide virtually unlimited power for all operations.
+                            </p>
+                        </div>
+                        
+                        <div class="glass p-6 rounded-xl hover:bg-gradient-to-r hover:from-space-blue/50 hover:to-space-dark/80 transition-colors duration-300 transform hover:scale-105">
+                            <h3 class="text-xl font-bold mb-3 flex items-center">
+                                Materials
+                            </h3>
+                            <p class="text-gray-300">
+                                Constructed with self-healing nano-composite materials that withstand impacts and repair structural damage.
+                            </p>
+                        </div>
+
+                        <div class="glass p-6 rounded-xl hover:bg-gradient-to-r hover:from-space-blue/50 hover:to-space-dark/80 transition-colors duration-300 transform hover:scale-105">
+                            <h3 class="text-xl font-bold mb-3 flex items-center">
+                                Computing
+                            </h3>
+                            <p class="text-gray-300">
+                                Advanced computing processes massive amounts of data, allowing for real-time decision making and precise targeting.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- mission -->
+    <section id="mission" class="py-16 md:py-24 relative z-10">
+        <div class="container mx-auto px-4 md:px-8">
+            <div class="glass rounded-2xl p-8 md:p-12 max-w-5xl mx-auto hover:bg-white/10 transition-colors duration-500">
+                <div class="flex flex-col md:flex-row gap-8 items-center">
+                    <div class="md:w-1/2">
+                        <h2 class="text-3xl font-bold mb-6 hover:text-space-accent transition-colors duration-300">Our Mission</h2>
+                        <p class="text-gray-300 mb-4">
+                            <span class="font-sig">Terminix</span> was designed with one clear purpose: to protect Earth from unpredictable cosmic threats that could cause catastrophic damage to our planet and civilization.
+                        </p>
+                        <p class="text-gray-300 mb-4">
+                            By deploying advanced detection systems and neutralization technology, <span class="font-sig">Terminix</span> acts as Earth's first line of defense against asteroids, comets, and other stellar objects on collision courses.
+                        </p>
+                        <div class="flex items-center mt-8 group">
+                            <div class="h-1 w-10 bg-space-accent mr-4 group-hover:w-16 transition-all duration-300"></div>
+                            <p class="text-space-accent font-medium group-hover:tracking-wider group-hover:text-white transition-all duration-300">GLOBAL PROTECTION INITIATIVE</p>
+                        </div>
+                    </div>
+                    <div class="md:w-1/2">
+                        <div class="relative group">
+                            <div class="absolute -inset-4 bg-gradient-to-r from-space-accent/20 to-blue-500/20 rounded-full blur-xl group-hover:blur-2xl group-hover:bg-opacity-30 transition-all duration-500"></div>
+                            <img src="https://videos.openai.com/vg-assets/assets%2Ftask_01jvp6hkywfxc8f00mxnmgb72j%2F1747723051_img_2.webp?st=2025-05-20T05%3A31%3A00Z&se=2025-05-26T06%3A31%3A00Z&sks=b&skt=2025-05-20T05%3A31%3A00Z&ske=2025-05-26T06%3A31%3A00Z&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skoid=3d249c53-07fa-4ba4-9b65-0bf8eb4ea46a&skv=2019-02-02&sv=2018-11-09&sr=b&sp=r&spr=https%2Chttp&sig=lH0KcnwiX%2Boh%2FjgCgIJs6iaiFcrC5759xTK62x8iN%2FY%3D&az=oaivgprodscus" alt="Earth from space" class="rounded-xl relative z-20 w-full group-hover:scale-105 group-hover:rotate-12 transition-all duration-700">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- features -->
+    <section id="features" class="py-16 md:py-24 relative z-10">
+        <div class="container mx-auto px-4 md:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 hover:text-space-accent transition-colors duration-300">Advanced Defense Features</h2>
+                <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+                    <span class="font-sig">Terminix</span> is equipped with six specialized systems designed to detect, analyze, and neutralize potential threats.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="glass rounded-xl p-6 hover:translate-y-[-8px] hover:bg-gradient-to-br hover:from-space-blue hover:to-space-dark transition-all duration-500 group">
+                    <div class="w-14 h-14 flex items-center justify-center rounded-full bg-space-blue mb-6 group-hover:bg-space-accent group-hover:scale-110 transition-all duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-space-accent group-hover:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 group-hover:text-space-accent transition-colors duration-300">Quantum Detection Array</h3>
+                    <p class="text-gray-300 group-hover:text-white transition-colors duration-300">
+                        Advanced sensors capable of detecting objects as small as 1 meter across at distances up to 10 million kilometers from Earth.
+                    </p>
+                </div>
+                
+                <div class="glass rounded-xl p-6 hover:translate-y-[-8px] hover:bg-gradient-to-br hover:from-space-blue/40 hover:to-space-dark/60 transition-all duration-500 group">
+                    <div class="w-14 h-14 flex items-center justify-center rounded-full bg-space-blue mb-6 group-hover:bg-space-accent group-hover:scale-110 transition-all duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-space-accent group-hover:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 group-hover:text-space-accent transition-colors duration-300">Fusion Pulse Cannons</h3>
+                    <p class="text-gray-300 group-hover:text-white transition-colors duration-300">
+                        High-energy weapons designed to fragment or vaporize approaching objects with precision targeting and minimal debris.
+                    </p>
+                </div>
+                
+                <div class="glass rounded-xl p-6 hover:translate-y-[-8px] hover:bg-gradient-to-br hover:from-space-blue hover:to-space-dark transition-all duration-500 group">
+                    <div class="w-14 h-14 flex items-center justify-center rounded-full bg-space-blue mb-6 group-hover:bg-space-accent group-hover:scale-110 transition-all duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-space-accent group-hover:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 group-hover:text-space-accent transition-colors duration-300">AI Threat Analysis</h3>
+                    <p class="text-gray-300 group-hover:text-white transition-colors duration-300">
+                        Autonomous system that evaluates approaching objects, calculates impact probability, and prioritizes response protocols.
+                    </p>
+                </div>
+                
+                <div class="glass rounded-xl p-6 hover:translate-y-[-8px] hover:bg-gradient-to-br hover:from-space-blue hover:to-space-dark transition-all duration-500 group">
+                    <div class="w-14 h-14 flex items-center justify-center rounded-full bg-space-blue mb-6 group-hover:bg-space-accent group-hover:scale-110 transition-all duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-space-accent group-hover:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 group-hover:text-space-accent transition-colors duration-300">Gravitational Diverter</h3>
+                    <p class="text-gray-300 group-hover:text-white transition-colors duration-300">
+                        Creates localized gravity wells to alter the trajectory of larger objects that cannot be safely destroyed.
+                    </p>
+                </div>
+                
+                <div class="glass rounded-xl p-6 hover:translate-y-[-8px] hover:bg-gradient-to-br hover:from-space-blue hover:to-space-dark transition-all duration-500 group">
+                    <div class="w-14 h-14 flex items-center justify-center rounded-full bg-space-blue mb-6 group-hover:bg-space-accent group-hover:scale-110 transition-all duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-space-accent group-hover:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 group-hover:text-space-accent transition-colors duration-300">Self-Replicating Drones</h3>
+                    <p class="text-gray-300 group-hover:text-white transition-colors duration-300">
+                        Small autonomous units that can be deployed to analyze composition of objects and deliver targeted countermeasures.
+                    </p>
+                </div>
+                
+                <div class="glass rounded-xl p-6 hover:translate-y-[-8px] hover:bg-gradient-to-br hover:from-space-blue hover:to-space-dark transition-all duration-500 group">
+                    <div class="w-14 h-14 flex items-center justify-center rounded-full bg-space-blue mb-6 group-hover:bg-space-accent group-hover:scale-110 transition-all duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-space-accent group-hover:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 group-hover:text-space-accent transition-colors duration-300">Global Alert Network</h3>
+                    <p class="text-gray-300 group-hover:text-white transition-colors duration-300">
+                        Communications system that coordinates with Earth-based facilities and provides real-time updates on potential threats.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="deployment" class="py-16 md:py-24 relative z-10">
+        <div class="container mx-auto px-4 md:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 hover:text-space-accent transition-colors duration-300">Deployment Timeline</h2>
+                <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+                    The <span class="font-sig">Terminix</span> defense project is being implemented in phases to ensure complete global protection.
+                </p>
+            </div>
+            
+            <div class="max-w-4xl mx-auto">
+                <div class="relative">
+                    <div class="absolute left-4 md:left-1/2 top-0 bottom-0 w-0.5 md:transform md:-translate-x-1/2 bg-gradient-to-b from-space-accent/10 via-space-accent/30 to-space-accent/10"></div>
+                    
+                    <div class="space-y-12 relative">
+                        <div class="flex flex-col md:flex-row items-start relative">
+                            <div class="pl-16 md:pl-0 md:w-1/2 md:pr-12 mb-4 md:mb-0 md:text-right">
+                                <div class="glass p-6 rounded-xl inline-block hover:bg-white/10 hover:scale-105 transition-all duration-300">
+                                    <h3 class="text-xl font-bold mb-2 text-space-accent">Phase 1: Initial Deployment</h3>
+                                    <p class="text-gray-400 mb-3">Q2 2025 - Q4 2026</p>
+                                    <p class="text-gray-300">
+                                        First <span class="font-sig">Terminix</span> satellite launch and testing of core detection systems in Earth orbit.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-center z-10 ml-0 md:mx-auto">
+                                <div class="w-8 h-8 rounded-full bg-space-accent flex items-center justify-center hover:scale-125 transition-transform duration-300">
+                                    <span class="text-black font-bold">1</span>
+                                </div>
+                            </div>
+                            <div class="md:w-1/2 md:pl-12 pt-4 md:pt-0"></div>
+                        </div>
+                        
+                        <div class="flex flex-col md:flex-row items-start">
+                            <div class="md:w-1/2 md:pr-12 mb-4 md:mb-0 md:order-1"></div>
+                            <div class="flex items-center justify-center z-10 ml-0 md:mx-auto md:order-2">
+                                <div class="w-8 h-8 rounded-full bg-space-accent flex items-center justify-center hover:scale-125 transition-transform duration-300">
+                                    <span class="text-black font-bold">2</span>
+                                </div>
+                            </div>
+                            <div class="md:w-1/2 md:pl-12 pt-4 md:pt-0 md:order-3">
+                                <div class="glass p-6 rounded-xl inline-block hover:bg-white/10 hover:scale-105 transition-all duration-300">
+                                    <h3 class="text-xl font-bold mb-2 text-space-accent">Phase 2: Weapons Testing</h3>
+                                    <p class="text-gray-400 mb-3">Q1 2027 - Q3 2027</p>
+                                    <p class="text-gray-300">
+                                        Activation and calibration of defense systems on harmless test objects.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col md:flex-row items-start">
+                            <div class="md:w-1/2 md:pr-12 mb-4 md:mb-0 md:text-right">
+                                <div class="glass p-6 rounded-xl inline-block hover:bg-white/10 hover:scale-105 transition-all duration-300">
+                                    <h3 class="text-xl font-bold mb-2 text-space-accent">Phase 3: Network Expansion</h3>
+                                    <p class="text-gray-400 mb-3">Q4 2027 - Q2 2029</p>
+                                    <p class="text-gray-300">
+                                        Deployment of additional satellites to create a comprehensive defense network.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-center z-10 ml-0 md:mx-auto">
+                                <div class="w-8 h-8 rounded-full bg-space-accent flex items-center justify-center hover:scale-125 transition-transform duration-300">
+                                    <span class="text-black font-bold">3</span>
+                                </div>
+                            </div>
+                            <div class="md:w-1/2 md:pl-12 pt-4 md:pt-0"></div>
+                        </div>
+                        
+                        <div class="flex flex-col md:flex-row items-start">
+                            <div class="md:w-1/2 md:pr-12 mb-4 md:mb-0 md:order-1"></div>
+                            <div class="flex items-center justify-center z-10 ml-0 md:mx-auto md:order-2">
+                                <div class="w-8 h-8 rounded-full bg-space-accent flex items-center justify-center hover:scale-125 transition-transform duration-300">
+                                    <span class="text-black font-bold">4</span>
+                                </div>
+                            </div>
+                            <div class="md:w-1/2 md:pl-12 pt-4 md:pt-0 md:order-3">
+                                <div class="glass p-6 rounded-xl inline-block hover:bg-white/10 hover:scale-105 transition-all duration-300">
+                                    <h3 class="text-xl font-bold mb-2 text-space-accent">Phase 4: Full Operation</h3>
+                                    <p class="text-gray-400 mb-3">Q3 2029 onward</p>
+                                    <p class="text-gray-300">
+                                        Complete system activation with global coverage and 24/7 threat monitoring.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="console" class="py-16 md:py-24 relative z-10">
+        <div class="container mx-auto px-4 md:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 hover:text-space-accent transition-colors duration-300">System Status</h2>
+                <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+                    Real-time monitoring of the <span class="font-sig">Terminix</span> defense network.
+                </p>
+            </div>
+            
+            <div class="glass rounded-2xl p-8 md:p-12 max-w-5xl mx-auto hover:bg-white/10 transition-colors duration-500">
+                <div class="flex flex-col md:flex-row gap-6 items-start">
+                    <div class="md:w-1/3 space-y-4">
+                        <div class="glass p-4 rounded-lg">
+                            <h3 class="text-lg font-medium mb-2">Network Status</h3>
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                                <p class="text-green-400">ONLINE</p>
+                            </div>
+                        </div>
+                        
+                        <div class="glass p-4 rounded-lg">
+                            <h3 class="text-lg font-medium mb-2">Threat Level</h3>
+                            <div class="flex items-center" id="threatIndicator">
+                                <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                                <p class="text-blue-400">LOW</p>
+                            </div>
+                        </div>
+                        
+                        <div class="glass p-4 rounded-lg">
+                            <h3 class="text-lg font-medium mb-2">Satellites Active</h3>
+                            <p class="text-lg font-medium mb-3">4 / 12 Deployed</p>
+                            <div class="grid grid-cols-6 gap-1.5">
+                                <div class="h-4 bg-space-accent rounded-sm"></div>
+                                <div class="h-4 bg-space-accent rounded-sm"></div>
+                                <div class="h-4 bg-space-accent rounded-sm"></div>
+                                <div class="h-4 bg-space-accent rounded-sm"></div>
+
+                                <div class="h-4 bg-gray-500 rounded-sm"></div>
+                                <div class="h-4 bg-gray-500 rounded-sm"></div>
+                                <div class="h-4 bg-gray-500 rounded-sm"></div>
+                                <div class="h-4 bg-gray-500 rounded-sm"></div>
+                                <div class="h-4 bg-gray-500 rounded-sm"></div>
+                                <div class="h-4 bg-gray-500 rounded-sm"></div>
+                                <div class="h-4 bg-gray-500 rounded-sm"></div>
+                                <div class="h-4 bg-gray-500 rounded-sm"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass p-4 rounded-lg">
+                            <h3 class="text-lg font-medium mb-2">System Resources</h3>
+                            <div class="space-y-2">
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span>Power</span>
+                                        <span id="powerValue">89%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-500 rounded-full h-1.5">
+                                        <div id="powerBar" class="bg-green-500 h-1.5 rounded-full" style="width: 89%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span>Computing</span>
+                                        <span id="computingValue">64%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-500 rounded-full h-1.5">
+                                        <div id="computingBar" class="bg-yellow-500 h-1.5 rounded-full" style="width: 64%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span>Weapons</span>
+                                        <span id="weaponsValue">42%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-500 rounded-full h-1.5">
+                                        <div id="weaponsBar" class="bg-red-500 h-1.5 rounded-full" style="width: 42%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="md:w-2/3 h-full">
+                        <div class="glass rounded-lg overflow-hidden h-full flex flex-col">
+                            <div class="bg-gray-900 py-2 px-4 flex items-center">
+                                <div class="flex space-x-2 mr-4">
+                                    <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                                    <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                </div>
+                                <div class="text-sm text-gray-400" id="terminalHeader">terminix@core:~ (System Log)</div>
+                            </div>
+                            
+                            <div class="bg-gray-950 p-4 h-[29rem] overflow-y-auto font-mono text-sm leading-relaxed terminal-content" id="terminalContent">
+                            </div>
+                            
+                            <div class="bg-gray-900 p-3 flex items-center">
+                                <span class="text-green-400 flex items-center" id="systemStatus">
+                                    <span class="inline-block w-3 h-3 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                                    <span class="mr-2">ACTIVE: Monitoring satellite telemetry</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            
+        </script>
+    </section>
+
+    <!-- faq -->
+    <section id="faq" class="py-16 md:py-24 relative z-10">
+        <div class="container mx-auto px-4 md:px-8">
+            <div class="glass rounded-2xl p-8 md:p-12 max-w-5xl mx-auto hover:bg-white/10 transition-colors duration-500">
+                <h2 class="text-3xl md:text-4xl font-bold mb-10 text-center hover:text-space-accent transition-colors duration-300">Frequently Asked Questions</h2>
+                
+                <div class="space-y-6">
+                    <div class="glass p-6 rounded-xl hover:bg-gradient-to-r hover:from-space-blue/30 hover:to-transparent transition-all duration-300">
+                        <button class="flex justify-between items-center w-full text-left group">
+                            <h3 class="text-xl font-medium group-hover:text-space-accent transition-colors duration-300">How does <span class="font-sig">Terminix</span> detect potential threats?</h3>
+                            <svg class="w-5 h-5 text-space-accent group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="mt-4 text-gray-300 hidden">
+                            <span class="font-sig">Terminix</span> uses a combination of advanced radar, lidar, and infrared sensors that can detect objects of various sizes and compositions. The quantum detection array is sensitive enough to identify objects as small as 1 meter across at significant distances, giving ample time for response planning.
+                        </div>
+                    </div>
+                    
+                    <div class="glass p-6 rounded-xl hover:bg-gradient-to-r hover:from-space-blue/30 hover:to-transparent transition-all duration-300">
+                        <button class="flex justify-between items-center w-full text-left group">
+                            <h3 class="text-xl font-medium group-hover:text-space-accent transition-colors duration-300">What happens to the debris after neutralization?</h3>
+                            <svg class="w-5 h-5 text-space-accent group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="mt-4 text-gray-300 hidden">
+                            The fusion pulse cannons are calibrated to break threats into fragments small enough to burn up completely in Earth's atmosphere. For larger objects, the gravitational diverter can alter trajectories to ensure debris follows safe paths away from Earth.
+                        </div>
+                    </div>
+                    
+                    <div class="glass p-6 rounded-xl hover:bg-gradient-to-r hover:from-space-blue/30 hover:to-transparent transition-all duration-300">
+                        <button class="flex justify-between items-center w-full text-left group">
+                            <h3 class="text-xl font-medium group-hover:text-space-accent transition-colors duration-300">Who controls the <span class="font-sig">Terminix</span> network?</h3>
+                            <svg class="w-5 h-5 text-space-accent group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="mt-4 text-gray-300 hidden">
+                            <span class="font-sig">Terminix</span> is operated by an international consortium of space agencies and governed by a multinational oversight committee. While the system has significant autonomous capabilities, all major defensive actions require human authorization from multiple authorities.
+                        </div>
+                    </div>
+                    
+                    <div class="glass p-6 rounded-xl hover:bg-gradient-to-r hover:from-space-blue/30 hover:to-transparent transition-all duration-300">
+                        <button class="flex justify-between items-center w-full text-left group">
+                            <h3 class="text-xl font-medium group-hover:text-space-accent transition-colors duration-300">Can <span class="font-sig">Terminix</span> protect against all potential impacts?</h3>
+                            <svg class="w-5 h-5 text-space-accent group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="mt-4 text-gray-300 hidden">
+                            The system is designed to protect against 99.8% of potential asteroid and comet threats. The only limitations are extremely large objects (over 1km in diameter) discovered with very little warning time. However, such objects are continuously monitored by ground-based telescopes, making sudden appearances unlikely.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- join -->
+    <section id="contact" class="py-16 md:py-24 relative z-10">
+        <div class="container mx-auto px-4 md:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 hover:text-space-accent transition-colors duration-300">Join Our Mission</h2>
+                <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+                    Become part of humanity's defense initiative. We're recruiting brilliant minds to help protect Earth from cosmic threats.
+                </p>
+            </div>
+            
+            <div class="glass rounded-2xl p-8 md:p-12 max-w-3xl mx-auto hover:bg-white/10 transition-colors duration-500">
+                <div class="mb-8 border-l-4 border-space-accent pl-4">
+                    <h3 class="text-xl font-bold mb-2 text-space-accent">Now Recruiting</h3>
+                    <p class="text-gray-300">Positions available in aerospace engineering, quantum computing, weapons systems, and mission control. Remote and on-site opportunities across global facilities.</p>
+                </div>
+                
+                <form class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="name" class="block text-sm font-medium mb-2">Full Name</label>
+                            <input type="text" id="name" class="glass w-full p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-space-accent bg-transparent" placeholder="Your name">
+                        </div>
+                        
+                        <div>
+                            <label for="email" class="block text-sm font-medium mb-2">Email Address</label>
+                            <input type="email" id="email" class="glass w-full p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-space-accent bg-transparent" placeholder="Your email">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="specialty" class="block text-sm font-medium mb-2">Specialty Area</label>
+                        <select id="specialty" class="glass w-full p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-space-accent bg-transparent">
+                            <option value="" disabled selected>Select your area of expertise</option>
+                            <option value="engineering">Aerospace Engineering</option>
+                            <option value="computing">Quantum Computing</option>
+                            <option value="weapons">Defense Systems</option>
+                            <option value="detection">Detection Technology</option>
+                            <option value="operations">Mission Operations</option>
+                            <option value="other">Other Specialty</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="experience" class="block text-sm font-medium mb-2">Experience Level</label>
+                        <select id="experience" class="glass w-full p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-space-accent bg-transparent">
+                            <option value="" disabled selected>Select your experience level</option>
+                            <option value="entry">Entry Level (0-2 years)</option>
+                            <option value="mid">Mid-Level (3-5 years)</option>
+                            <option value="senior">Senior (6-10 years)</option>
+                            <option value="expert">Expert (10+ years)</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="message" class="block text-sm font-medium mb-2">Why do you want to join <span class="font-sig">Terminix</span>?</label>
+                        <textarea id="message" rows="4" class="glass w-full p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-space-accent bg-transparent" placeholder="Tell us about your motivation and qualifications..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="w-full glass px-8 py-4 rounded-full text-space-accent border border-space-accent hover:bg-gradient-to-r hover:from-space-accent hover:to-teal-400 hover:text-black hover:scale-105 transform transition-all duration-300 font-bold">
+                        Apply to Join the Defense Initiative
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- footer -->
+    <footer class="py-10 relative z-10">
+        <div class="container mx-auto px-4 md:px-8">
+            <div class="glass rounded-2xl p-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div class="md:col-span-2">
+                        <div class="flex items-center mb-4">
+                            <div class="text-space-accent font-bold text-2xl mr-2 font-sig">TERMINIX</div>
+                            <div class="text-xs text-gray-400">// ASTEROID DEFENSE SYSTEM</div>
+                        </div>
+                        <p class="text-gray-300 mb-6">
+                            Protecting Earth from cosmic threats through advanced satellite technology and global cooperation.
+                        </p>
+                        <div class="flex space-x-4">
+                            <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+                                </svg>
+                            </a>
+                            <a href="#" class="text-gray-400 hover:text-[#d811b4] transition-colors">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                    
+                </select> 
+                <div>
+                        <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+                        <ul class="space-y-2">
+                            <li><a href="#technology" class="text-gray-300 hover:text-space-accent transition-colors">Technology</a></li>
+                            <li><a href="#mission" class="text-gray-300 hover:text-space-accent transition-colors">Our Mission</a></li>
+                            <li><a href="#features" class="text-gray-300 hover:text-space-accent transition-colors">Features</a></li>
+                            <li><a href="#deployment" class="text-gray-300 hover:text-space-accent transition-colors">Timeline</a></li>
+                            <li><a href="#faq" class="text-gray-300 hover:text-space-accent transition-colors">FAQ</a></li>
+                            <li><a href="#contact" class="text-gray-300 hover:text-space-accent transition-colors">Join</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-bold mb-4">Contact</h3>
+                        <ul class="space-y-2">
+                            <li class="flex items-s</div>tart">
+                                <svg class="w-5 h-5 text-space-accent mt-0.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                                <span class="text-gray-300">info@terminix.ai</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-5 h-5 text-space-accent mt-0.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                                </svg>
+                                <span class="text-gray-300">+1 (800) TER-MINIX</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-5 h-5 text-space-accent mt-0.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                <span class="text-gray-300">International Space Center<br>Terminix Industries<br>Houston, TX 77058</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="border-t border-white/10 mt-8 pt-8 text-sm text-gray-400 text-center">
+                    <p>&copy2025 Terminix Satellite Defense Systems. All rights reserved.</p>
+                    <p class="mt-2">This is a fictional project created for demonstration purposes only.</p></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuButton = document.querySelector('button.md\\:hidden');
+            const mobileMenu = document.querySelector('.md\\:hidden.glass.fixed');
+            
+            mobileMenuButton.addEventListener('click', function() {
+                if (mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.remove('hidden');
+                } else {
+                    mobileMenu.classList.add('hidden');
+                }
+            });
+            
+            const mobileLinks = mobileMenu.querySelectorAll('a');
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+            
+            const faqButtons = document.querySelectorAll('.glass button');
+            faqButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const content = this.nextElementSibling;
+                    const icon = this.querySelector('svg');
+                    
+                    if (content.classList.contains('hidden')) {
+                        content.classList.remove('hidden');
+                        icon.style.transform = 'rotate(180deg)';
+                    } else {
+                        content.classList.add('hidden');
+                        icon.style.transform = 'rotate(0)';
+                    }
+                });
+            });
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            const terminalContent = document.getElementById('terminalContent');
+            const threatIndicator = document.getElementById('threatIndicator');
+            const powerValue = document.getElementById('powerValue');
+            const powerBar = document.getElementById('powerBar');
+            const computingValue = document.getElementById('computingValue');
+            const computingBar = document.getElementById('computingBar');
+            const weaponsValue = document.getElementById('weaponsValue');
+            const weaponsBar = document.getElementById('weaponsBar');
+            const systemStatus = document.getElementById('systemStatus');
+            const terminalHeader = document.getElementById('terminalHeader');
+            
+            let terminalInitialized = false;
+            let threatLevel = "LOW";
+            let inThreatEvent = false;
+            let threatEventTimeout = null;
+            
+            let resources = {
+                power: 89,
+                computing: 64,
+                weapons: 42
+            };
+            
+            function initializeTerminal() {
+                if (terminalInitialized) return;
+                
+                const messages = [
+                    { offset: -36000, class: 'text-green-400', text: '[SYSTEM] Terminal connected to Terminix Defense Network...' },
+                    { offset: -35995, class: 'text-gray-400', text: 'Initiating system diagnostics...' },
+                    { offset: -35992, class: 'text-gray-400', text: 'Satellite uplink established.' },
+                    { offset: -35988, class: 'text-gray-400', text: 'Quantum detection array online.' },
+                    { offset: -35985, class: 'text-gray-400', text: 'Defense systems calibrated.' },
+                    { offset: -35980, class: 'text-green-400', text: 'All systems operational.' },
+                    { offset: -33378, class: 'text-gray-400', text: 'Routine scan of sector 4 initiated.' },
+                    { offset: -29803, class: 'text-yellow-400', text: 'Small object detected in sector 4. Analyzing...' },
+                    { offset: -29775, class: 'text-gray-400', text: 'Object identified: Space debris, 0.3m diameter.' },
+                    { offset: -29770, class: 'text-gray-400', text: 'Tracking disabled - object poses no threat.' },
+                    { offset: -24888, class: 'text-gray-400', text: 'Scheduled maintenance of satellite T-03 initiated.' },
+                    { offset: -22195, class: 'text-gray-400', text: 'Maintenance complete. All systems nominal.' },
+                    { offset: -16052, class: 'text-yellow-400', text: 'Unidentified object detected in sector 7.' },
+                    { offset: -16045, class: 'text-gray-400', text: 'Initiating advanced scan protocols...' },
+                    { offset: -16018, class: 'text-yellow-400', text: 'Object identified: Asteroid, 12m diameter.' },
+                    { offset: -16010, class: 'text-gray-400', text: 'Calculating trajectory and impact probability...' },
+                    { offset: -15975, class: 'text-red-400', text: 'WARNING: 0.02% probability of Earth impact.' },
+                    { offset: -15970, class: 'text-gray-400', text: 'Monitoring protocol initiated. Authorization requested.' },
+                    { offset: -15930, class: 'text-gray-400', text: 'Authorization code: CHARLIE-552-ECHO received.' },
+                    { offset: -15925, class: 'text-gray-400', text: 'Continuous monitoring engaged. Alert level: LOW.' },
+                    { offset: -11862, class: 'text-gray-400', text: 'Updated trajectory analysis. New data incoming...' },
+                    { offset: -11815, class: 'text-green-400', text: 'UPDATED: Object will miss Earth by 240,000 km.' },
+                    { offset: -11810, class: 'text-gray-400', text: 'Monitoring protocol disengaged.' },
+                    { offset: -6698, class: 'text-gray-400', text: 'Routine system diagnostics running...' },
+                    { offset: -6680, class: 'text-gray-400', text: 'All systems operating within optimal parameters.' },
+                    { offset: -4200, class: 'text-blue-400', text: 'Daily report generated. No significant threats detected.' },
+                    { offset: -1785, class: 'text-yellow-400', text: 'Incoming transmission from Houston Control...' },
+                    { offset: -1770, class: 'text-green-400', text: 'Status update requested by Mission Control' },
+                    { offset: -1765, class: 'text-blue-400', text: 'System status: All systems nominal. 4 satellites online. No immediate threats detected.' }
+                ];
+                
+                terminalContent.innerHTML = '';
+                
+                const now = new Date();
+                
+                messages.forEach(message => {
+                    const messageTime = new Date(now.getTime() + (message.offset * 1000));
+                    const timestamp = messageTime.toISOString().replace('T', ' ').substring(0, 19);
+                    
+                    const element = document.createElement('p');
+                    element.className = message.class;
+                    
+                    if (message.text.startsWith('[SYSTEM]')) {
+                        element.textContent = message.text;
+                    } else {
+                        element.textContent = `[${timestamp}] ${message.text}`;
+                    }
+                    
+                    terminalContent.appendChild(element);
+                });
+                
+                terminalContent.scrollTop = terminalContent.scrollHeight;
+                
+                startPeriodicUpdates();
+                
+                scheduleRandomThreatEvent();
+                
+                terminalInitialized = true;
+            }
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        initializeTerminal();
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            observer.observe(document.getElementById('console'));
+            
+            function updateResourcesUI() {
+                powerValue.textContent = `${resources.power}%`;
+                powerBar.style.width = `${resources.power}%`;
+                
+                computingValue.textContent = `${resources.computing}%`;
+                computingBar.style.width = `${resources.computing}%`;
+                computingBar.className = resources.computing > 90 ? 'bg-red-500 h-1.5 rounded-full' :
+                                        resources.computing > 75 ? 'bg-orange-500 h-1.5 rounded-full' :
+                                        'bg-yellow-500 h-1.5 rounded-full';
+                
+                weaponsValue.textContent = `${resources.weapons}%`;
+                weaponsBar.style.width = `${resources.weapons}%`;
+            }
+            
+            function setThreatLevel(level) {
+                threatLevel = level;
+                
+                threatIndicator.innerHTML = '';
+                
+                const indicator = document.createElement('div');
+                indicator.className = 'w-3 h-3 rounded-full mr-2';
+                
+                const text = document.createElement('p');
+                
+                switch(level) {
+                    case "LOW":
+                        indicator.className += ' bg-blue-500';
+                        text.className = 'text-blue-400';
+                        text.textContent = 'LOW';
+                        break;
+                    case "MODERATE":
+                        indicator.className += ' bg-yellow-500';
+                        text.className = 'text-yellow-400';
+                        text.textContent = 'MODERATE';
+                        break;
+                    case "HIGH":
+                        indicator.className += ' bg-orange-500 alert-blink';
+                        text.className = 'text-orange-400';
+                        text.textContent = 'HIGH';
+                        break;
+                    case "CRITICAL":
+                        indicator.className += ' bg-red-500 alert-blink';
+                        text.className = 'text-red-400';
+                        text.textContent = 'CRITICAL';
+                        break;
+                }
+                
+                threatIndicator.appendChild(indicator);
+                threatIndicator.appendChild(text);
+            }
+            
+            function addLogEntry(className, text) {
+                const now = new Date();
+                const timestamp = now.toISOString().replace('T', ' ').substring(0, 19);
+                
+                const element = document.createElement('p');
+                element.className = className;
+                
+                if (text.startsWith('[SYSTEM]')) {
+                    element.textContent = text;
+                } else {
+                    element.textContent = `[${timestamp}] ${text}`;
+                }
+                
+                terminalContent.appendChild(element);
+                terminalContent.scrollTop = terminalContent.scrollHeight;
+            }
+            
+            function handleThreatEvent() {
+                if (inThreatEvent) return;
+                inThreatEvent = true;
+                
+                if (threatEventTimeout) clearTimeout(threatEventTimeout);
+                
+                const severity = Math.random();
+                let threatType, threatSize, eventDuration;
+                
+                if (severity < 0.6) {
+                    setThreatLevel("MODERATE");
+                    threatType = "Asteroid";
+                    threatSize = Math.floor(Math.random() * 15) + 5;
+                    eventDuration = Math.floor(Math.random() * 15000) + 30000;
+                } else if (severity < 0.9) {
+                    setThreatLevel("HIGH");
+                    threatType = "Asteroid";
+                    threatSize = Math.floor(Math.random() * 30) + 20;
+                    eventDuration = Math.floor(Math.random() * 20000) + 45000;
+                } else {
+                    setThreatLevel("CRITICAL");
+                    threatType = Math.random() > 0.5 ? "Asteroid" : "Comet";
+                    threatSize = Math.floor(Math.random() * 50) + 50;
+                    eventDuration = Math.floor(Math.random() * 30000) + 60000;
+                }
+                
+                terminalHeader.textContent = `terminix@core:~ (⚠️ THREAT DETECTED)`;
+                systemStatus.innerHTML = `
+                    <span class="inline-block w-3 h-3 bg-red-500 rounded-full mr-2 alert-blink"></span>
+                    <span class="mr-2">ALERT: Defense protocol active</span>
+                `;
+                
+                addLogEntry('text-red-400', `⚠️ ALERT: ${threatType} detected in sector ${Math.floor(Math.random() * 12) + 1}`);
+                addLogEntry('text-yellow-400', `Object size estimate: ${threatSize}m diameter`);
+                addLogEntry('text-yellow-400', `Computing trajectory and impact probability...`);
+                
+                resources.computing = Math.min(95, resources.computing + Math.floor(Math.random() * 25) + 15);
+                updateResourcesUI();
+                
+                setTimeout(() => {
+                    const impactProb = (Math.random() * 10).toFixed(2);
+                    addLogEntry('text-red-400', `Impact probability: ${impactProb}%`);
+                    addLogEntry('text-yellow-400', `Threat level ${threatLevel}: Defense protocol initiated`);
+                    addLogEntry('text-gray-400', `Requesting authorization for countermeasures...`);
+                    
+                    setTimeout(() => {
+                        addLogEntry('text-green-400', `Authorization granted: CODE ALPHA-${Math.floor(Math.random() * 900) + 100}***-*****`);
+                        addLogEntry('text-yellow-400', `Targeting system engaged`);
+                        addLogEntry('text-gray-400', `Calculating optimal intercept solution...`);
+                        
+                        resources.computing = Math.min(98, resources.computing + Math.floor(Math.random() * 10) + 5);
+                        updateResourcesUI();
+                        
+                        setTimeout(() => {
+                            addLogEntry('text-yellow-400', `Fusion pulse cannons charging...`);
+                            addLogEntry('text-gray-400', `Calibrating for ${threatSize}m ${threatType.toLowerCase()}...`);
+                            
+                            const weaponsInterval = setInterval(() => {
+                                resources.weapons = Math.max(5, resources.weapons - 5);
+                                resources.power = Math.max(70, resources.power - 1);
+                                updateResourcesUI();
+                                
+                                if (resources.weapons <= 10) {
+                                    clearInterval(weaponsInterval);
+                                    addLogEntry('text-red-400', `FIRING FUSION PULSE CANNONS`);
+                                    resources.power = Math.max(60, resources.power - 5);
+                                    updateResourcesUI();
+                                    
+                                    setTimeout(() => {
+                                        if (Math.random() > 0.1) {
+                                            addLogEntry('text-gray-400', `Tracking projectile...`);
+                                            addLogEntry('text-green-400', `✓ TARGET NEUTRALIZED`);
+                                            addLogEntry('text-gray-400', `Scanning debris field...`);
+                                            
+                                            const rechargeInterval = setInterval(() => {
+                                                resources.weapons = Math.min(42, resources.weapons + 2);
+                                                updateResourcesUI();
+                                                
+                                                if (resources.weapons >= 40) {
+                                                    clearInterval(rechargeInterval);
+                                                }
+                                            }, 1000);
+                                            
+                                            setTimeout(() => {
+                                                addLogEntry('text-gray-400', `Debris analysis: No remaining threats detected`);
+                                                addLogEntry('text-green-400', `Threat eliminated. Returning to normal operations.`);
+                                                
+                                                setThreatLevel("LOW");
+                                                terminalHeader.textContent = `terminix@core:~ (System Log)`;
+                                                systemStatus.innerHTML = `
+                                                    <span class="inline-block w-3 h-3 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                                                    <span class="mr-2">ACTIVE: Monitoring satellite telemetry</span>
+                                                `;
+                                                
+                                                const computingInterval = setInterval(() => {
+                                                    resources.computing = Math.max(64, resources.computing - 3);
+                                                    resources.power = Math.min(89, resources.power + 1);
+                                                    updateResourcesUI();
+                                                    
+                                                    if (resources.computing <= 64) {
+                                                        clearInterval(computingInterval);
+                                                    }
+                                                }, 1000);
+                                                
+                                                inThreatEvent = false;
+                                                
+                                                scheduleRandomThreatEvent();
+                                            }, 5000);
+                                            
+                                        } else {
+                                            addLogEntry('text-gray-400', `Tracking projectile...`);
+                                            addLogEntry('text-yellow-400', `⚠️ MISS: Target not neutralized`);
+                                            addLogEntry('text-gray-400', `Recalibrating targeting systems...`);
+                                            
+                                            setTimeout(() => {
+                                                addLogEntry('text-yellow-400', `Secondary firing solution calculated`);
+                                                addLogEntry('text-red-400', `FIRING RESERVE CANNONS`);
+                                                
+                                                setTimeout(() => {
+                                                    addLogEntry('text-green-400', `✓ TARGET NEUTRALIZED ON SECOND ATTEMPT`);
+                                                    addLogEntry('text-gray-400', `Scanning debris field...`);
+                                                    
+                                                    const rechargeInterval = setInterval(() => {
+                                                        resources.weapons = Math.min(42, resources.weapons + 2);
+                                                        updateResourcesUI();
+                                                        
+                                                        if (resources.weapons >= 40) {
+                                                            clearInterval(rechargeInterval);
+                                                        }
+                                                    }, 1000);
+                                                    
+                                                    setTimeout(() => {
+                                                        addLogEntry('text-green-400', `Threat eliminated. Returning to normal operations.`);
+                                                        
+                                                        setThreatLevel("LOW");
+                                                        terminalHeader.textContent = `terminix@core:~ (System Log)`;
+                                                        systemStatus.innerHTML = `
+                                                            <span class="inline-block w-3 h-3 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                                                            <span class="mr-2">ACTIVE: Monitoring satellite telemetry</span>
+                                                        `;
+                                                        
+                                                        const computingInterval = setInterval(() => {
+                                                            resources.computing = Math.max(64, resources.computing - 3);
+                                                            resources.power = Math.min(89, resources.power + 1);
+                                                            updateResourcesUI();
+                                                            
+                                                            if (resources.computing <= 64) {
+                                                                clearInterval(computingInterval);
+                                                            }
+                                                        }, 1000);
+                                                        
+                                                        inThreatEvent = false;
+                                                        
+                                                        scheduleRandomThreatEvent();
+                                                    }, 5000);
+                                                }, 3000);
+                                            }, 4000);
+                                        }
+                                    }, Math.floor(Math.random() * 4000) + 4000);
+                                }
+                            }, 1000);
+                            
+                        }, Math.floor(Math.random() * 3000) + 3000);
+                    }, Math.floor(Math.random() * 2000) + 2000);
+                }, Math.floor(Math.random() * 2000) + 3000);
+            }
+            
+            function scheduleRandomThreatEvent() {
+                const nextEventTime = Math.floor(Math.random() * 60000) + 30000;
+                threatEventTimeout = setTimeout(handleThreatEvent, nextEventTime);
+            }
+            
+            function startPeriodicUpdates() {
+                let updateInterval = setInterval(() => {
+                    if (inThreatEvent) return;
+                    
+                    const rect = terminalContent.getBoundingClientRect();
+                    const isVisible = rect.top < window.innerHeight && rect.bottom >= 0;
+                    
+                    if (!isVisible) {
+                        return;
+                    }
+                    
+                    const now = new Date();
+                    const timestamp = now.toISOString().replace('T', ' ').substring(0, 19);
+                    
+                    if (Math.random() < 0.3) {
+                        const updates = [
+                            { class: 'text-gray-400', text: 'Routine scan completed. No anomalies detected.' },
+                            { class: 'text-gray-400', text: 'System resources optimized. Runtime performance improved by 3%.' },
+                            { class: 'text-yellow-400', text: 'Minor space debris detected in orbital path. Tracking...' },
+                            { class: 'text-gray-400', text: 'Debris trajectory calculated. No impact risk.' },
+                            { class: 'text-blue-400', text: 'Receiving data update from ground station Alpha.' },
+                            { class: 'text-gray-400', text: 'Satellite T-02 repositioning for optimal coverage.' },
+                            { class: 'text-green-400', text: 'Repositioning complete. Coverage improved in sector 9.' },
+                            { class: 'text-gray-400', text: 'System diagnostics running automatically.' },
+                            { class: 'text-blue-400', text: 'Telemetry data collected from all active satellites.' },
+                            { class: 'text-gray-400', text: 'Automated scan of sector 2 initiated.' },
+                            { class: 'text-gray-400', text: 'Processing orbital debris tracking data.' },
+                            { class: 'text-yellow-400', text: 'Network latency detected. Optimizing connections.' },
+                            { class: 'text-green-400', text: 'Network optimization complete. Response time improved.' }
+                        ];
+                        
+                        const randomUpdate = updates[Math.floor(Math.random() * updates.length)];
+                        
+                        const updateElement = document.createElement('p');
+                        updateElement.className = randomUpdate.class;
+                        updateElement.textContent = `[${timestamp}] ${randomUpdate.text}`;
+                        terminalContent.appendChild(updateElement);
+                        
+                        terminalContent.scrollTop = terminalContent.scrollHeight;
+                    }
+                }, 8000);
+                
+                terminalContent.dataset.updateInterval = updateInterval;
+            }
+        });
+    </script>
+</body>
+</html>
